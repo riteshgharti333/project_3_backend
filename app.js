@@ -10,6 +10,9 @@ import contactRouter from "./routes/contactRoute.js";
 import portfolioRouter from "./routes/portfolioRoute.js";
 import teamRouter from "./routes/teamRoute.js";
 
+import contact2router from "./routes/contact2Route.js";
+
+
 // Initialize Express app
 export const app = express();
 
@@ -18,9 +21,20 @@ config({
   path: "./data/config.env",
 });
 
-// const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
 
-app.use(cors())
+const allowedOrigins = [
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "https://project-3-admin-git-main-riteshgharti333s-projects.vercel.app", // Replace with your actual Vercel domain
+];
+
+// Configure CORS
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true, // Allow cookies and authorization headers
+  })
+);
 
 // app.use(
 //   cors({
@@ -46,6 +60,9 @@ app.use("/api/home-banner", homeBannerRouter);
 app.use("/api/contact", contactRouter);
 app.use("/api/portfolio", portfolioRouter);
 app.use("/api/team", teamRouter);
+
+app.use("/api/contact2", contact2router);
+
 
 app.get("/", (req, res) => {
   res.send("Welcome to Project 3");
