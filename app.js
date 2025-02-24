@@ -26,7 +26,7 @@ const allowedOrigins = [
   "http://localhost:5174",
   "http://localhost:3000",
   "https://project-3-admin-xr5l.vercel.app",
-  "https://project003-git-main-riteshgharti333s-projects.vercel.app"
+  "https://project003-sigma.vercel.app"
 ];
 
 // Configure CORS
