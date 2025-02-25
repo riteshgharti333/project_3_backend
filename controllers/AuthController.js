@@ -34,7 +34,7 @@ export const login = catchAsyncError(async (req, res, next) => {
   const user = await Auth.findOne({ email }).select("+password");
 
   if (!user) {
-    return next(new ErrorHandler("User Not Found Of This Email", 400));
+    return next(new ErrorHandler("User Not Found With This Email", 400));
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
@@ -43,10 +43,12 @@ export const login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Invalid Email or Password", 400));
   }
 
+  // ✅ Ensure password is removed **only after** checking
   user.password = undefined;
 
   sendCookie(user, res, "Login Successfully", 200);
 });
+
 
 
 
@@ -68,40 +70,40 @@ export const logout = catchAsyncError(async (req, res) => {
 
 
 // UPDATE PASSWORD
-
 export const updatePassword = catchAsyncError(async (req, res, next) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
-      return next(new ErrorHandler("Both passwords are required", 400));
-    }
-
-    // Fetch user and ensure password field is included
-    const user = await Auth.findById(req.user.id).select("+password");
-
-    if (!user) return next(new ErrorHandler("User not found!", 404));
-    if (!user.password) return next(new ErrorHandler("Password not set", 400));
-
-    // Compare current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) return next(new ErrorHandler("Invalid current password", 400));
-
-    // Prevent setting the same password again
-    if (await bcrypt.compare(newPassword, user.password)) {
-      return next(new ErrorHandler("New password cannot be the same", 400));
-    }
-
-    // Hash new password and update
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Password changed successfully",
-    });
-  } catch (error) {
-    next(error);
+  if (!currentPassword || !newPassword) {
+    return next(new ErrorHandler("Both current and new passwords are required", 400));
   }
+
+  if (!req.user?.id) {
+    return next(new ErrorHandler("User not authenticated", 401));
+  }
+
+  const user = await Auth.findById(req.user.id).select("+password");
+
+  if (!user) return next(new ErrorHandler("User not found!", 404));
+  if (!user.password) return next(new ErrorHandler("Password not set", 400));
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) return next(new ErrorHandler("Invalid current password", 400));
+
+  const isSamePassword = await bcrypt.compare(newPassword, user.password);
+  if (isSamePassword) {
+    return next(new ErrorHandler("New password cannot be the same as the old one", 400));
+  }
+
+  // ✅ Ensure password is hashed only once before saving
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    message: "Password changed successfully",
+  });
 });
+
+
+
 
