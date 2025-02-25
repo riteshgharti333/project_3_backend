@@ -10,7 +10,10 @@ import contactRouter from "./routes/contactRoute.js";
 import portfolioRouter from "./routes/portfolioRoute.js";
 import teamRouter from "./routes/teamRoute.js";
 
-import contact2router from "./routes/contact2Route.js";
+import contact2Router from "./routes/contact2Route.js";
+
+import visitorRouter from "./routes/visiterRoute.js";
+
 
 
 // Initialize Express app
@@ -62,7 +65,10 @@ app.use("/api/contact", contactRouter);
 app.use("/api/portfolio", portfolioRouter);
 app.use("/api/team", teamRouter);
 
-app.use("/api/contact2", contact2router);
+app.use("/api/contact2", contact2Router);
+
+app.use("/api/visitors", visitorRouter);
+
 
 
 app.get("/", (req, res) => {
