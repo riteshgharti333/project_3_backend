@@ -20,20 +20,41 @@ const authSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      select : false,
+      select: false,
       required: [true, "Password is required"],
       minlength: [6, "Password must be at least 6 characters"],
       validate: {
         validator: function (v) {
-          return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(v);
+          return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(
+            v
+          );
         },
-        message: "Password must contain at least one uppercase letter, one number, and one special character",
+        message:
+          "Password must contain at least one uppercase letter, one number, and one special character",
       },
     },
-    role: {
+
+    currentPassword: {
       type: String,
-      enum: ["admin"],
-      default: "admin",
+      select: false,
+    },
+    newPassword: {
+      type: String,
+      select: false,
+      minlength: [6, "Password must be at least 6 characters"],
+      validate: {
+        validator: function (v) {
+          return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(
+            v
+          );
+        },
+        message:
+          "Password must contain at least one uppercase letter, one number, and one special character",
+      },
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
@@ -42,6 +63,12 @@ const authSchema = new mongoose.Schema(
 // 🔹 Hash password before saving to the database
 authSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+authSchema.pre("save", async function (next) {
+  if (!this.isModified("newPassword")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
