@@ -1,6 +1,6 @@
 import VisitorCount from "../models/visitorModel.js";
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
+import ErrorHandler from "../utils/errorHandler.js";
 
 // Increment visitor count
 export const incrementVisitor = catchAsyncError(async (req, res, next) => {
