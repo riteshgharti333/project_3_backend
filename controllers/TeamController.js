@@ -22,7 +22,7 @@ export const newTeam = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// GET SINGLE Team
+// GET SINGLE TEAM
 
 export const getSingleTeam = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;

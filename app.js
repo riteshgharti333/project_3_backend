@@ -14,7 +14,7 @@ import contact2Router from "./routes/contact2Route.js";
 
 import visitorRouter from "./routes/visiterRoute.js";
 
-
+import photoAlbumRouter from "./routes/photoAlbumRoute.js";
 
 // Initialize Express app
 export const app = express();
@@ -24,12 +24,12 @@ config({
   path: "./data/config.env",
 });
 
-
 const allowedOrigins = [
+  "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:3000",
   "https://project-3-admin-xr5l.vercel.app",
-  "https://project003-sigma.vercel.app"
+  "https://project003-sigma.vercel.app",
 ];
 
 // Configure CORS
@@ -39,21 +39,6 @@ app.use(
     credentials: true, // Allow cookies and authorization headers
   })
 );
-
-// app.use(
-//   cors({
-//     origin: function (origin, callback) {
-//       if (!origin || allowedOrigins.includes(origin)) {
-//         callback(null, true);
-//       } else {
-//         console.error(`Blocked by CORS: ${origin}`);
-//         callback(new Error("Not allowed by CORS"));
-//       }
-//     },
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//     credentials: true,
-//   })
-// );
 
 app.use(cookieParser());
 app.use(express.json());
@@ -69,7 +54,7 @@ app.use("/api/contact2", contact2Router);
 
 app.use("/api/visitors", visitorRouter);
 
-
+app.use("/api/photoAlbum", photoAlbumRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Project 3");
