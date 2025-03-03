@@ -9,12 +9,12 @@ import homeBannerRouter from "./routes/homeBannerRoute.js";
 import contactRouter from "./routes/contactRoute.js";
 import portfolioRouter from "./routes/portfolioRoute.js";
 import teamRouter from "./routes/teamRoute.js";
-
 import contact2Router from "./routes/contact2Route.js";
-
 import visitorRouter from "./routes/visiterRoute.js";
-
 import photoAlbumRouter from "./routes/photoAlbumRoute.js";
+
+import ServicesRouter from "./routes/servicesRoute.js";
+
 
 // Initialize Express app
 export const app = express();
@@ -63,6 +63,8 @@ app.use("/api/contact2", contact2Router);
 app.use("/api/visitors", visitorRouter);
 
 app.use("/api/photoAlbum", photoAlbumRouter);
+app.use("/api/services", ServicesRouter);
+
 
 app.get("/", (req, res) => {
   res.send("Welcome to Project 3");

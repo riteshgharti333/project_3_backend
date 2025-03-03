@@ -25,9 +25,12 @@ const authSchema = new mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters"],
       validate: {
         validator: function (v) {
-          return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(v);
+          return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/.test(
+            v
+          );
         },
-        message: "Password must contain at least one uppercase letter, one number, and one special character",
+        message:
+          "Password must contain at least one uppercase letter, one number, and one special character",
       },
     },
     isAdmin: {
@@ -50,11 +53,12 @@ authSchema.pre("save", async function (next) {
   next();
 });
 
-
-
-authSchema.methods.updatePassword = async function (currentPassword, newPassword) {
+authSchema.methods.updatePassword = async function (
+  currentPassword,
+  newPassword
+) {
   const isMatch = await bcrypt.compare(currentPassword, this.password);
-  
+
   if (!isMatch) {
     throw new Error("Current password is incorrect.");
   }
@@ -67,13 +71,12 @@ authSchema.methods.updatePassword = async function (currentPassword, newPassword
 
   // Hash new password and update
   this.password = await bcrypt.hash(newPassword, 10);
-  
+
   // ✅ Skip validation before saving
   await this.save({ validateBeforeSave: false });
 
   // 🔹 Return the updated hashed password
   return this.password;
 };
-
 
 export const Auth = mongoose.model("Auth", authSchema);
