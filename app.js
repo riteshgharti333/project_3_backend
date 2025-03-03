@@ -24,19 +24,27 @@ config({
   path: "./data/config.env",
 });
 
+// Configure CORS settings
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:3000",
-  "https://project-3-admin-xr5l.vercel.app",
-  "https://project003-sigma.vercel.app",
+  "http://localhost:5000",
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
 ];
 
 // Configure CORS
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true, // Allow cookies and authorization headers
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.error(`Blocked by CORS: ${origin}`);
+        callback(new ErrorHandler("Not allowed by CORS", 403));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 
