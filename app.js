@@ -15,6 +15,7 @@ import photoAlbumRouter from "./routes/photoAlbumRoute.js";
 
 import ServicesRouter from "./routes/servicesRoute.js";
 
+import mobileRouter from "./routes/mobileRoute.js";
 
 // Initialize Express app
 export const app = express();
@@ -58,12 +59,12 @@ app.use("/api/contact", contactRouter);
 app.use("/api/portfolio", portfolioRouter);
 app.use("/api/team", teamRouter);
 
-
 app.use("/api/contact2", contact2Router);
 app.use("/api/visitors", visitorRouter);
 app.use("/api/photoAlbum", photoAlbumRouter);
 app.use("/api/services", ServicesRouter);
 
+app.use("/api/mobile", mobileRouter);
 
 app.get("/", (req, res) => {
   res.send("Welcome to Project 3");
