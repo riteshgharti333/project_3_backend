@@ -58,10 +58,9 @@ app.use("/api/contact", contactRouter);
 app.use("/api/portfolio", portfolioRouter);
 app.use("/api/team", teamRouter);
 
+
 app.use("/api/contact2", contact2Router);
-
 app.use("/api/visitors", visitorRouter);
-
 app.use("/api/photoAlbum", photoAlbumRouter);
 app.use("/api/services", ServicesRouter);
 
