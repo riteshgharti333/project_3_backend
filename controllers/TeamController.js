@@ -78,7 +78,7 @@ export const getAllTeams = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// UPDATE Team
+// UPDATE TEAM
 
 export const updateTeam = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
