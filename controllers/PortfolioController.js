@@ -2,23 +2,47 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import { Portfolio } from "../models/portfolioModel.js";
 import ErrorHandler from "../utils/errorHandler.js";
 
-export const newPortfolio = catchAsyncError(async (req, res, next) => {
-  const { name, title, image } = req.body;
+import cloudinary from "../utils/cloudinary.js";
+import streamifier from "streamifier";
+import mongoose from "mongoose";
 
-  if (!name || !title || !image) {
-    return next(new ErrorHandler("All fields are required!", 400));
+export const newPortfolio = catchAsyncError(async (req, res, next) => {
+  if (!req.file) {
+    throw new ErrorHandler("image is required!", 400);
   }
 
-  const newPortfolio = await Portfolio.create({
-    name,
-    title,
-    image,
+  let imageUrl;
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "tk_production_film/portfolio_images",
+          transformation: [{ quality: "auto", fetch_format: "auto" }],
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+
+    imageUrl = result.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    throw new ErrorHandler("Failed to upload image to Cloudinary", 500);
+  }
+
+  const portfolio = await Portfolio.create({
+    image: imageUrl,
   });
 
   res.status(201).json({
     success: true,
     message: "Portfolio added successfully!",
-    portfolio: newPortfolio,
+    portfolio,
   });
 });
 
@@ -50,11 +74,14 @@ export const getAllPortfolios = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// UPDATE PORTFOLIO
+// DELETE PORTFOLIO
 
-export const updatePortfolio = catchAsyncError(async (req, res, next) => {
+export const deletePortfolio = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
-  const { name, title, image } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ErrorHandler("Invalid ID format!", 400);
+  }
 
   const portfolio = await Portfolio.findById(id);
 
@@ -62,28 +89,13 @@ export const updatePortfolio = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Portfolio not found!", 404));
   }
 
-  portfolio.name = name || portfolio.name;
-  portfolio.title = title || portfolio.title;
-  portfolio.image = image || portfolio.image;
+  const imageUrl = portfolio.image;
+  if (imageUrl) {
+    const publicId = imageUrl.split("/").pop().split(".")[0];
 
-  await portfolio.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Portfolio updated successfully!",
-    portfolio,
-  });
-});
-
-// DELETE PORTFOLIO
-
-export const deletePortfolio = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-
-  const portfolio = await Portfolio.findById(id);
-
-  if (!portfolio) {
-    return next(new ErrorHandler("Portfolio not found!", 404));
+    await cloudinary.uploader.destroy(
+      `tk_production_film/portfolio_images/${publicId}`
+    );
   }
 
   await portfolio.deleteOne();

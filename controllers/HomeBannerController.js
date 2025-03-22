@@ -2,125 +2,106 @@ import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import HomeBanner from "../models/homeBannerModel.js";
 import ErrorHandler from "../utils/errorHandler.js";
 
-// CREATE NEW BANNER
+import cloudinary from "../utils/cloudinary.js";
+import streamifier from "streamifier";
+import mongoose from "mongoose";
 
 export const newHomeBanner = catchAsyncError(async (req, res, next) => {
-  const { bannerTitle, bannerDetails } = req.body;
-
-  // Check for empty fields
-  if (!bannerTitle || !bannerDetails || !bannerDetails.length) {
-    return next(new ErrorHandler("All fields are required!", 400));
+  if (!req.file) {
+    throw new ErrorHandler("image is required!", 400);
   }
 
-  // Validate that each detail object contains title, desc, and image
-  for (let item of bannerDetails) {
-    if (!item.title || !item.desc || !item.image) {
-      return next(
-        new ErrorHandler(
-          "Each detail item must have title, desc, and image",
-          400
-        )
+  let imageUrl;
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "tk_production_film/homeBanner_images",
+          transformation: [{ quality: "auto", fetch_format: "auto" }],
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
       );
-    }
+
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+
+    imageUrl = result.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    throw new ErrorHandler("Failed to upload image to Cloudinary", 500);
   }
 
-  // Create new banner entry
-  const newBanner = new HomeBanner({
-    bannerTitle,
-    bannerDetails,
+  const homeBanner = await HomeBanner.create({
+    image: imageUrl,
   });
-
-  await newBanner.save();
 
   res.status(201).json({
     success: true,
-    message: "Home Banner created successfully!",
-    homeBanner: newBanner,
+    message: "Home Banner added successfully!",
+    homeBanner,
   });
 });
 
-// GET SINGLE BANNER
+// GET SINGLE homeBanner
 
 export const getSingleHomeBanner = catchAsyncError(async (req, res, next) => {
-  let { id } = req.params;
+  const { id } = req.params;
 
   const homeBanner = await HomeBanner.findById(id);
 
   if (!homeBanner) {
-    return next(new ErrorHandler("Banner not found!", 404));
+    return next(new ErrorHandler("Home Banner not found!", 404));
   }
 
   res.status(200).json({
     success: true,
-    homeBanner: homeBanner,
+    homeBanner,
   });
 });
 
-// GET ALL BANNER
+// GET All homeBanner
 
 export const getAllHomeBanner = catchAsyncError(async (req, res, next) => {
-  const homeBanners = await HomeBanner.find();
-
-  if (!homeBanners || homeBanners.length === 0) {
-    return next(new ErrorHandler("No banners found!", 404));
-  }
+  const homeBanner = await HomeBanner.find();
 
   res.status(200).json({
     success: true,
-    homeBanners: homeBanners,
+    homeBanner,
   });
 });
 
-// DELETE SINGLE BANNER
+// DELETE homeBanner
 
 export const deleteHomeBanner = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
 
-  // Check if the banner exists
-  const banner = await HomeBanner.findById(id);
-
-  if (!banner) {
-    return next(new ErrorHandler("Banner not found!", 404));
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ErrorHandler("Invalid ID format!", 400);
   }
 
-  // Delete the banner
-  await HomeBanner.findByIdAndDelete(id);
+  const homeBanner = await HomeBanner.findById(id);
+
+  if (!homeBanner) {
+    return next(new ErrorHandler("Home Banner not found!", 404));
+  }
+
+  const imageUrl = homeBanner.image;
+  if (imageUrl) {
+    const publicId = imageUrl.split("/").pop().split(".")[0];
+
+    await cloudinary.uploader.destroy(
+      `tk_production_film/homeBanner_images/${publicId}`
+    );
+  }
+
+  await homeBanner.deleteOne();
 
   res.status(200).json({
     success: true,
-    message: "Banner deleted successfully!",
-  });
-});
-
-
-// UPDATE SINGLE BANNER
-export const updateHomeBanner = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  const { bannerTitle, bannerDetails } = req.body; 
-
-  // Check if the banner exists
-  const banner = await HomeBanner.findById(id);
-
-  if (!banner) {
-    return next(new ErrorHandler("Banner not found!", 404));
-  }
-
-  // Update the banner title if provided
-  if (bannerTitle) {
-    banner.bannerTitle = bannerTitle;
-  }
-
-  // Completely replace bannerDetails if provided
-  if (bannerDetails && Array.isArray(bannerDetails)) {
-    banner.bannerDetails = bannerDetails; // This replaces the array
-  }
-
-  // Save the updated banner
-  await banner.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Banner updated successfully!",
-    updatedBanner: banner,
+    message: "Home Banner deleted successfully!",
   });
 });

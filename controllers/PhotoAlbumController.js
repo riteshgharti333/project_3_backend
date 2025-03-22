@@ -1,89 +1,110 @@
-import { PhotoAlbum } from "../models/photoAlbumModel.js";
+
 import { catchAsyncError } from "../middlewares/catchAsyncError.js";
 import ErrorHandler from "../utils/errorHandler.js";
+import { PhotoAlbum } from "../models/photoAlbumModel.js";
 
-// NEW PHOTOALBUM
+import cloudinary from "../utils/cloudinary.js";
+import streamifier from "streamifier";
+import mongoose from "mongoose";
+
 
 export const newPhotoAlbum = catchAsyncError(async (req, res, next) => {
-  const { images } = req.body;
-
-  if (!images || !Array.isArray(images) || images.length === 0) {
-    return next(new ErrorHandler("At least one image is required!", 400));
+  if (!req.file) {
+    throw new ErrorHandler("image is required!", 400);
   }
 
-  const newAlbum = await PhotoAlbum.create({ images });
+  let imageUrl;
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "tk_production_film/photoAlbum_images",
+          transformation: [{ quality: "auto", fetch_format: "auto" }],
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(stream);
+    });
+
+    imageUrl = result.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    throw new ErrorHandler("Failed to upload image to Cloudinary", 500);
+  }
+
+  const photoAlbum = await PhotoAlbum.create({
+    image: imageUrl,
+  });
 
   res.status(201).json({
     success: true,
-    message: "Photo album created successfully!",
-    album: newAlbum,
+    message: "Photo Album added successfully!",
+    photoAlbum,
   });
 });
 
-// ALL  PHOTOALBUM
+// GET SINGLE photoAlbum
 
-export const getAllPhotoAlbums = catchAsyncError(async (req, res) => {
-  const albums = await PhotoAlbum.find();
-  res.status(200).json({
-    success: true,
-    albums,
-  });
-});
-
-// GET SINGLE PHOTO ALBUM
 export const getSinglePhotoAlbum = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
 
-  const album = await PhotoAlbum.findById(id);
+  const photoAlbum = await PhotoAlbum.findById(id);
 
-  if (!album) {
-    return next(new ErrorHandler("Photo album not found!", 404));
+  if (!photoAlbum) {
+    return next(new ErrorHandler("Photo Album not found!", 404));
   }
 
   res.status(200).json({
     success: true,
-    album,
+    photoAlbum,
   });
 });
 
-// UPDATE PHOTOALBUM
-export const updatePhotoAlbum = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  const { images } = req.body;
+// GET All photoAlbum
 
-  if (!images || !Array.isArray(images) || images.length === 0) {
-    return next(new ErrorHandler("At least one image is required!", 400));
-  }
+export const getAllPhotoAlbums = catchAsyncError(async (req, res, next) => {
 
-  const updatedAlbum = await PhotoAlbum.findByIdAndUpdate(
-    id,
-    { images },
-    { new: true, runValidators: true }
-  );
-
-  if (!updatedAlbum) {
-    return next(new ErrorHandler("Photo album not found!", 404));
-  }
+  const photoAlbum = await PhotoAlbum.find();
 
   res.status(200).json({
     success: true,
-    message: "Photo album updated successfully!",
-    album: updatedAlbum,
+    photoAlbum,
   });
 });
 
-// DELETE PHOTOALBUM
+// DELETE photoAlbum
+
 export const deletePhotoAlbum = catchAsyncError(async (req, res, next) => {
   const { id } = req.params;
 
-  const album = await PhotoAlbum.findByIdAndDelete(id);
-
-  if (!album) {
-    return next(new ErrorHandler("Photo album not found!", 404));
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ErrorHandler("Invalid ID format!", 400);
   }
+
+  const photoAlbum = await PhotoAlbum.findById(id);
+
+  if (!photoAlbum) {
+    return next(new ErrorHandler("Photo Album not found!", 404));
+  }
+
+  const imageUrl = photoAlbum.image;
+  if (imageUrl) {
+    const publicId = imageUrl.split("/").pop().split(".")[0];
+
+    await cloudinary.uploader.destroy(
+      `tk_production_film/photoAlbum_images/${publicId}`
+    );
+  }
+
+  await photoAlbum.deleteOne();
 
   res.status(200).json({
     success: true,
-    message: "Photo album deleted successfully!",
+    message: "Photo Album deleted successfully!",
   });
 });

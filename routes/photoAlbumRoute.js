@@ -4,18 +4,17 @@ import {
   getAllPhotoAlbums,
   getSinglePhotoAlbum,
   newPhotoAlbum,
-  updatePhotoAlbum,
 } from "../controllers/PhotoAlbumController.js";
+
+import upload from "../middlewares/multer.js";
 
 const router = express.Router();
 
-router.post("/new-photo-album", newPhotoAlbum);
+router.post("/new-photo-album", upload.single("image"), newPhotoAlbum);
 
 router.get("/all-photo-album", getAllPhotoAlbums);
 
 router.get("/:id", getSinglePhotoAlbum);
-
-router.put("/:id", updatePhotoAlbum);
 
 router.delete("/:id", deletePhotoAlbum);
 

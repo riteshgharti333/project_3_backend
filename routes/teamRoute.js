@@ -8,12 +8,17 @@ import {
   updateTeam,
 } from "../controllers/TeamController.js";
 
+import upload from "../middlewares/multer.js";
+
 const router = express.Router();
 
-router.post("/new-team", newTeam);
+router.post("/new-team", upload.single("image"), newTeam);
 router.get("/all-teams", getAllTeams);
+
 router.get("/:id", getSingleTeam);
-router.put("/:id", updateTeam);
+
+router.put("/:id", upload.single("image"), updateTeam);
+
 router.delete("/:id", deleteTeam);
 
 export default router;
