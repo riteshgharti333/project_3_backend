@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createReview, deleteReview, getAllReviews, getReviewById, updateReview } from "../controllers/reviewController.js";
+import { createReview, deleteReview, getAllReviews, getReviewById, updateReview } from "../controllers/ReviewController.js";
 
 import upload from "../middlewares/multer.js";
 
