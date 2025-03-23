@@ -1,6 +1,6 @@
 import { Video1 } from "../models/video1Model.js";
 import {catchAsyncError} from "../middlewares/catchAsyncError.js";
-import ErrorHandler from "../utils/ErrorHandler.js";
+import ErrorHandler from "../utils/errorHandler.js";
 
 // CREATE VIDEO
 export const createVideo = catchAsyncError(async (req, res, next) => {
