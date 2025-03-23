@@ -17,6 +17,14 @@ import ServicesRouter from "./routes/servicesRoute.js";
 
 import mobileRouter from "./routes/mobileRoute.js";
 
+import reviewRouter from "./routes/reviewRoute.js";
+
+import video1Router from "./routes/video1Route.js";
+import video2Router from "./routes/video2Route.js";
+
+
+
+
 // Initialize Express app
 export const app = express();
 
@@ -65,6 +73,13 @@ app.use("/api/photoAlbum", photoAlbumRouter);
 app.use("/api/services", ServicesRouter);
 
 app.use("/api/mobile", mobileRouter);
+app.use("/api/review", reviewRouter);
+
+app.use("/api/wedding-cinematography", video1Router);
+app.use("/api/pre-wedding-film", video2Router);
+
+
+
 
 app.get("/", (req, res) => {
   res.send("Welcome to Project 3");

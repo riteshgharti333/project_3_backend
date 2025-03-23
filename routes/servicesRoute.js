@@ -39,11 +39,11 @@ router.put(
 );
 
 //3
-router.post("/new/pre-wedding-films", upload.array("images"), newServicesImg);
+router.post("/new/pre-wedding-film", upload.array("images"), newServicesImg);
 
-router.get("/pre-wedding-films/:id", getServicesImg);
+router.get("/pre-wedding-film/:id", getServicesImg);
 
-router.put("/pre-wedding-films/:id", upload.array("images"), updateServicesImg);
+router.put("/pre-wedding-film/:id", upload.array("images"), updateServicesImg);
 
 //4
 router.post(
