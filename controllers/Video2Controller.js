@@ -22,7 +22,7 @@ export const createVideo = catchAsyncError(async (req, res, next) => {
 // GET ALL
 
 export const getAllVideos = catchAsyncError(async (req, res) => {
-  const videos = await Video2.find().sort({ createdAt: -1 });
+  const videos = await Video2.find().sort({ sortOrder: 1 });
 
   res.status(200).json({
     success: true,
@@ -59,4 +59,20 @@ export const deleteVideo = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Video deleted successfully",
   });
+});
+
+
+export const updateVideoOrder2 = catchAsyncError(async (req, res) => {
+
+  const { orderedIds } = req.body;
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    await Video2.findByIdAndUpdate(orderedIds[i], { sortOrder: i });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Order updated successfully",
+  });
+  
 });

@@ -7,6 +7,11 @@ const videoSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    sortOrder: {
+      type: Number,
+      default: 0,
+    },
+  
   },
   { timestamps: true }
 );

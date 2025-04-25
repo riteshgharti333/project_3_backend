@@ -60,6 +60,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+
+
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/home-banner", homeBannerRouter);
