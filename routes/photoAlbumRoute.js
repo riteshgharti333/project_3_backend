@@ -7,15 +7,23 @@ import {
 } from "../controllers/PhotoAlbumController.js";
 
 import upload from "../middlewares/multer.js";
+import { isAdmin } from "../middlewares/isAdmin.js";
+import { isAuthenticated } from "../middlewares/isAuthenticated.js";
 
 const router = express.Router();
 
-router.post("/new-photo-album", upload.single("image"), newPhotoAlbum);
+router.post(
+  "/new-photo-album",
+  isAuthenticated,
+  isAdmin,
+  upload.single("image"),
+  newPhotoAlbum
+);
 
 router.get("/all-photo-album", getAllPhotoAlbums);
 
 router.get("/:id", getSinglePhotoAlbum);
 
-router.delete("/:id", deletePhotoAlbum);
+router.delete("/:id", isAuthenticated, isAdmin, deletePhotoAlbum);
 
 export default router;

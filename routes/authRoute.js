@@ -6,8 +6,8 @@ import {
   register,
   updatePassword,
 } from "../controllers/AuthController.js";
+import { isAuthenticated } from "../middlewares/isAuthenticated.js";
 
-import { isAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
